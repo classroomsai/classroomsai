@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClassroomsAI - Revolutionary AI-Powered Learning</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+<!-- Header -->
+<header class="flex flex-col md:flex-row justify-between items-center p-6 bg-black text-white">
+    <div class="text-3xl md:text-5xl font-bold">ClassroomsAI</div>
+    <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4 mt-4 md:mt-0">
+        <a href="#how-it-works" class="text-gray-400 hover:text-white">How it works</a>
+        <a href="#features" class="text-gray-400 hover:text-white">Features</a>
+        <a href="#pricing" class="text-gray-400 hover:text-white">Pricing</a>
+    </div>
+    <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4 items-center mt-4 md:mt-0">
+        <a href="#" class="text-gray-400 hover:text-white">Sign In</a>
+        <button class="bg-yellow-600 text-black px-4 py-2 rounded-full hover:bg-yellow-500">Get early access &rarr;</button>
+    </div>
+</header>
+
+<!-- Main Section -->
+<main class="flex flex-col items-center justify-center text-center px-6 py-20 bg-black text-white">
+    <h1 class="text-4xl md:text-8xl font-bold mb-4">AI-Powered Learning<br><span class="bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent">Tailored to Your Content</span></h1>
+    <p class="text-xl md:text-3xl p-4">Generate quizzes from any source. Learn collaboratively. Master your goals.</p>
+    <button class="bg-yellow-500 text-black px-6 py-3 rounded-full hover:bg-yellow-600 mt-6">Try Our Quiz Generator &rarr;</button>
+</main>
+
+<!-- How It Works Section -->
+<section id="how-it-works" class="container mx-auto px-4 py-20">
+    <h2 class="text-4xl font-bold text-center text-gray-900 mb-12">How ClassroomsAI Works</h2>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div class="text-center">
+            <div class="bg-pink-500 text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 text-2xl font-bold">1</div>
+            <h3 class="text-xl font-semibold mb-2">Upload Content</h3>
+            <p>Input your documents, URLs, or YouTube videos</p>
+        </div>
+        <div class="text-center">
+            <div class="bg-yellow-500 text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 text-2xl font-bold">2</div>
+            <h3 class="text-xl font-semibold mb-2">AI Analysis</h3>
+            <p>Our AI processes the content and generates quizzes</p>
+        </div>
+        <div class="text-center">
+            <div class="bg-teal-500 text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 text-2xl font-bold">3</div>
+            <h3 class="text-xl font-semibold mb-2">Take Quizzes</h3>
+            <p>Engage with personalized quizzes to reinforce learning</p>
+        </div>
+        <div class="text-center">
+            <div class="bg-indigo-500 text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 text-2xl font-bold">4</div>
+            <h3 class="text-xl font-semibold mb-2">Learn Together</h3>
+            <p>Connect with others studying similar content</p>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section id="features" class="bg-gradient-to-r from-indigo-500 to-purple-500 text-white py-20">
+    <div class="container mx-auto px-4">
+        <h2 class="text-4xl font-bold text-center mb-12">Unlock Your Potential with ClassroomsAI</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+            <div class="bg-white rounded-lg shadow-lg p-8 text-center">
+                <img src="https://via.placeholder.com/150" alt="RAG Quiz Generator" class="mx-auto mb-6 rounded-full w-32 h-32">
+                <h3 class="text-2xl font-bold text-gray-800">RAG Quiz Generator</h3>
+                <p class="mt-4 text-gray-600">Create custom quizzes from any content source using our advanced AI.</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-lg p-8 text-center">
+                <img src="https://via.placeholder.com/150" alt="Structured Classes" class="mx-auto mb-6 rounded-full w-32 h-32">
+                <h3 class="text-2xl font-bold text-gray-800">Structured Classes</h3>
+                <p class="mt-4 text-gray-600">Engage in well-organized courses with clear learning paths and milestones.</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-lg p-8 text-center">
+                <img src="https://via.placeholder.com/150" alt="Social Learning" class="mx-auto mb-6 rounded-full w-32 h-32">
+                <h3 class="text-2xl font-bold text-gray-800">Social Learning</h3>
+                <p class="mt-4 text-gray-600">Connect with peers learning similar content for collaborative growth.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Demo Section -->
+<section id="demo" class="container mx-auto px-4 py-20">
+    <h2 class="text-4xl font-bold text-center text-gray-900 mb-12">Try Our Quiz Generator</h2>
+    <div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md">
+        <form id="demo-form" class="space-y-4">
+            <div>
+                <label for="content-type" class="block mb-2 font-semibold">Content Type:</label>
+                <select id="content-type" class="w-full p-2 border rounded">
+                    <option value="text">Text/Document</option>
+                    <option value="url">Web Page URL</option>
+                    <option value="youtube">YouTube Video URL</option>
+                </select>
+            </div>
+            <div>
+                <label for="content" class="block mb-2 font-semibold">Enter Content or URL:</label>
+                <textarea id="content" rows="4" class="w-full p-2 border rounded"></textarea>
+            </div>
+            <button type="submit" class="bg-yellow-500 text-black px-4 py-2 rounded-full hover:bg-yellow-600">Generate Quiz</button>
+        </form>
+        <div id="quiz-result" class="mt-8 hidden">
+            <h3 class="font-semibold mb-4">Generated Quiz:</h3>
+            <div id="quiz-questions" class="space-y-4"></div>
+        </div>
+    </div>
+</section>
+
+<!-- Pricing Section -->
+<section id="pricing" class="bg-gray-100 py-20">
+    <div class="container mx-auto px-4">
+        <h2 class="text-4xl font-bold text-center text-gray-900 mb-12">Value-Driven Pricing</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="bg-white p-8 rounded-lg shadow-md text-center">
+                <h3 class="text-xl font-semibold mb-4">Learner</h3>
+                <p class="text-4xl font-bold mb-4">$19.99<span class="text-sm font-normal">/month</span></p>
+                <ul class="mb-8 space-y-2 text-gray-600">
+                    <li>Access to all AI-generated quizzes</li>
+                    <li>Participation in structured classes</li>
+                    <li>Basic social learning features</li>
+                    <li>1 quiz generation per month</li>
+                </ul>
+                <a href="#" class="bg-yellow-500 text-black px-6 py-2 rounded-full hover:bg-yellow-600 transition duration-300">Choose Plan</a>
+            </div>
+            <div class="bg-white p-8 rounded-lg shadow-md text-center border-2 border-yellow-500">
+                <h3 class="text-xl font-semibold mb-4">Educator</h3>
+                <p class="text-4xl font-bold mb-4">$99.99<span class="text-sm font-normal">/month</span></p>
+                <ul class="mb-8 space-y-2 text-gray-600">
+                    <li>1 Course and 10 quiz generation</li>
+                    <li>Create and manage structured classes</li>
+                    <li>Advanced analytics and insights</li>
+                    <li>Priority support</li>
+                    <li>Collaborative content creation tools</li>
+                </ul>
+                <a href="#" class="bg-yellow-500 text-black px-6 py-2 rounded-full hover:bg-yellow-600 transition duration-300">Choose Plan</a>
+            </div>
+            <div class="bg-white p-8 rounded-lg shadow-md text-center">
+                <h3 class="text-xl font-semibold mb-4">Institution</h3>
+                <p class="text-4xl font-bold mb-4">Custom</p>
+                <ul class="mb-8 space-y-2 text-gray-600">
+                    <li>Custom integration with existing LMS</li>
+                    <li>Dedicated account management</li>
+                    <li>White-labeling options</li>
+                    <li>API access for custom implementations</li>
+                    <li>Bulk licensing for students and faculty</li>
+                </ul>
+                <a href="#" class="bg-yellow-500 text-black px-6 py-2 rounded-full hover:bg-yellow-600 transition duration-300">Contact Us</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer class="flex flex-col md:flex-row justify-between items-center p-6 bg-black text-white">
+    <div class="text-3xl md:text-5xl font-bold">ClassroomsAI</div>
+    <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4 mt-4 md:mt-0">
+        <a href="#" class="text-gray-400 hover:text-white">About Us</a>
+        <a href="#" class="text-gray-400 hover:text-white">Contact</a>
+        <a href="#" class="text-gray-400 hover:text-white">Privacy Policy</a>
+        <a href="#" class="text-gray-400 hover:text-white">Terms of Service</a>
+    </div>
+    <div id="footer-year" class="text-gray-400 mt-4 md:mt-0"></div>
+</footer>
+
+<script>
+    // Demo quiz generator
+    const demoForm = document.getElementById('demo-form');
+    const quizResult = document.getElementById('quiz-result');
+    const quizQuestions = document.getElementById('quiz-questions');
+
+    demoForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const contentType = document.getElementById('content-type').value;
+        const content = document.getElementById('content').value;
+
+        // Simulated API call to generate quiz
+        setTimeout(() => {
+            const generatedQuestions = [
+                { question: "What is the main feature of ClassroomsAI?", options: ["Video streaming", "Quiz generation", "Social media integration", "Virtual reality"], answer: 1 },
+                { question: "How does ClassroomsAI create quizzes?", options: ["Manual input", "AI-powered analysis", "Crowdsourcing", "Random generation"], answer: 1 },
+                { question: "What type of content can ClassroomsAI analyze?", options: ["Only text documents", "Only videos", "Documents, web pages, and videos", "Only images"], answer: 2 }
+            ];
+
+            quizQuestions.innerHTML = '';
+            generatedQuestions.forEach((q, index) => {
+                const questionEl = document.createElement('div');
+                questionEl.innerHTML = `
+                    <p class="font-semibold">${index + 1}. ${q.question}</p>
+                    <div class="ml-4">
+                        ${q.options.map((option, i) => `
+                            <div>
+                                <input type="radio" id="q${index}_o${i}" name="q${index}" value="${i}">
+                                <label for="q${index}_o${i}">${option}</label>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                quizQuestions.appendChild(questionEl);
+            });
+
+            quizResult.classList.remove('hidden');
+        }, 1000);
+    });
+
+    // Set current year in footer
+    document.getElementById('footer-year').textContent = `© ${new Date().getFullYear()} ClassroomsAI`;
+</script>
+
+</body>
+</html>
