@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Immersive AI Classroom</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.11.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/universal-sentence-encoder@1.3.3/dist/universal-sentence-encoder.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+        }
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .side-panel {
+            position: fixed;
+            top: 0;
+            height: 100%;
+            width: 300px;
+            z-index: 100;
+            transition: transform 0.3s ease-in-out;
+        }
+        .left-panel {
+            left: 0;
+            transform: translateX(-270px);
+        }
+        .right-panel {
+            right: 0;
+            transform: translateX(270px);
+        }
+        .side-panel:hover, .side-panel.active {
+            transform: translateX(0);
+        }
+        .panel-tab {
+            position: absolute;
+            top: 50%;
+            width: 30px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .left-panel .panel-tab {
+            right: -30px;
+            border-radius: 0 15px 15px 0;
+        }
+        .right-panel .panel-tab {
+            left: -30px;
+            border-radius: 15px 0 0 15px;
+        }
+        .bottom-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+        }
+        .icon-button {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            margin: 5px;
+        }
+        .scrollable {
+            max-height: calc(100vh - 100px);
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white">
+    <div id="canvas-container"></div>
+    
+    <div class="side-panel left-panel glass-panel p-4">
+        <div class="panel-tab glass-panel bg-blue-500">
+            <i class="fas fa-chevron-right"></i>
+        </div>
+        <div class="panel-content scrollable">
+            <h2 class="text-xl font-bold mb-2">Learning Path</h2>
+            <div id="learning-path-content"></div>
+            <h2 class="text-xl font-bold mt-4 mb-2">Generated Resources</h2>
+            <div id="generated-resources"></div>
+        </div>
+    </div>
+
+    <div class="side-panel right-panel glass-panel p-4">
+        <div class="panel-tab glass-panel bg-green-500">
+            <i class="fas fa-chevron-left"></i>
+        </div>
+        <div class="panel-content scrollable">
+            <h2 class="text-xl font-bold mb-2">AI Assistant</h2>
+            <div id="ai-messages" class="mb-2 h-64 overflow-y-auto"></div>
+            <input type="text" id="ai-input" placeholder="Ask your AI assistant..." class="w-full p-2 bg-gray-700 text-white rounded">
+            <h2 class="text-xl font-bold mt-4 mb-2">Current Role: <span id="current-role"></span></h2>
+            <div id="role-buttons" class="flex flex-wrap"></div>
+        </div>
+    </div>
+
+    <div class="bottom-panel glass-panel p-4 flex space-x-2">
+        <button id="voice-input" class="icon-button bg-green-600 text-white hover:bg-green-700 transition-colors" title="Voice Input">
+            <i class="fas fa-microphone"></i>
+        </button>
+        <button id="text-input" class="icon-button bg-blue-600 text-white hover:bg-blue-700 transition-colors" title="Text Input">
+            <i class="fas fa-keyboard"></i>
+        </button>
+        <button id="file-upload" class="icon-button bg-yellow-600 text-white hover:bg-yellow-700 transition-colors" title="Upload 3D Model">
+            <i class="fas fa-file-upload"></i>
+        </button>
+        <button id="change-environment" class="icon-button bg-purple-600 text-white hover:bg-purple-700 transition-colors" title="Change Environment">
+            <i class="fas fa-globe"></i>
+        </button>
+        <button id="collaborate" class="icon-button bg-red-600 text-white hover:bg-red-700 transition-colors" title="Collaborate">
+            <i class="fas fa-users"></i>
+        </button>
+    </div>
+
+    <input type="file" id="file-input" style="display: none;" accept=".glb,.gltf">
+
+    <script>
+        // Three.js setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        const loader = new THREE.GLTFLoader();
+
+        camera.position.z = 5;
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0x404040);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        scene.add(directionalLight);
+
+        // Interactive objects
+        const interactiveObjects = [];
+
+        function loadEnvironment(modelPath) {
+            loader.load(modelPath, (gltf) => {
+                scene.clear();
+                scene.add(gltf.scene);
+                gltf.scene.traverse((child) => {
+                    if (child.isMesh) {
+                        child.material.color.setHex(0x00ff00);
+                        child.material.wireframe = true;
+                        interactiveObjects.push(child);
+                    }
+                });
+            }, undefined, (error) => {
+                console.error('An error happened', error);
+            });
+        }
+
+        loadEnvironment('path/to/default_environment.glb');
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Raycaster for object interaction
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        function onMouseMove(event) {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+            checkIntersection();
+        }
+
+        function checkIntersection() {
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(interactiveObjects);
+            interactiveObjects.forEach(obj => obj.material.color.setHex(0x00ff00));
+            if (intersects.length > 0) {
+                intersects[0].object.material.color.setHex(0xff0000);
+            }
+        }
+
+        window.addEventListener('mousemove', onMouseMove, false);
+
+        // AI Assistant functionality
+        const aiMessages = document.getElementById('ai-messages');
+        const aiInput = document.getElementById('ai-input');
+        const learningPathContent = document.getElementById('learning-path-content');
+        const currentRoleElement = document.getElementById('current-role');
+        const roleButtons = document.getElementById('role-buttons');
+        const generatedResources = document.getElementById('generated-resources');
+
+        let model;
+        let learningPath = [];
+        let currentRole = 'Student';
+        const roles = ['Student', 'Teacher', 'Researcher'];
+
+        async function loadAIModel() {
+            model = await use.load();
+        }
+
+        loadAIModel();
+
+        function addAIMessage(message) {
+            const messageElement = document.createElement('p');
+            messageElement.textContent = message;
+            aiMessages.appendChild(messageElement);
+            aiMessages.scrollTop = aiMessages.scrollHeight;
+        }
+
+        async function generateAIResponse(input) {
+            const inputEmbedding = await model.embed([input]);
+            // In a real implementation, we would use this embedding to query a more sophisticated AI model
+            // For now, we'll use a simple keyword matching system
+            if (input.toLowerCase().includes('solar system')) {
+                return "Let's explore the solar system! I'm loading a 3D model of our planetary neighborhood.";
+            } else if (input.toLowerCase().includes('dna')) {
+                return "DNA is a fascinating topic. I'm rendering a 3D model of a DNA strand for us to examine.";
+            } else {
+                return "I understand you're interested in " + input + ". Let's explore this topic together in our 3D environment.";
+            }
+        }
+
+        aiInput.addEventListener('keypress', async function(e) {
+            if (e.key === 'Enter') {
+                const userMessage = aiInput.value;
+                addAIMessage('You: ' + userMessage);
+                const aiResponse = await generateAIResponse(userMessage);
+                addAIMessage('AI: ' + aiResponse);
+                updateLearningPath(userMessage);
+                if (userMessage.toLowerCase().includes('solar system')) {
+                    loadEnvironment('path/to/solar_system.glb');
+                } else if (userMessage.toLowerCase().includes('dna')) {
+                    loadEnvironment('path/to/dna_model.glb');
+                }
+                generateResource(userMessage);
+                aiInput.value = '';
+            }
+        });
+
+        function updateLearningPath(topic) {
+            learningPath.push(topic);
+            learningPathContent.innerHTML = `
+                <p>Current focus: ${topic}</p>
+                <p>Your learning journey:</p>
+                <ul class="list-disc list-inside">
+                    ${learningPath.map(item => `<li>${item}</li>`).join('')}
+                </ul>
+                <p>Next suggested topics:</p>
+                <ul class="list-disc list-inside">
+                    <li>${suggestNextTopic(topic)}</li>
+                </ul>
+            `;
+        }
+
+        function suggestNextTopic(currentTopic) {
+            const topics = {
+                'solar system': 'Planetary orbits',
+                'dna': 'Genetic mutations',
+                'default': 'Fundamental principles of ' + currentTopic
+            };
+            return topics[currentTopic.toLowerCase()] || topics['default'];
+        }
+
+        function generateResource(topic) {
+            const resourceTypes = ['Lesson Plan', 'Interactive Quiz', 'Research Summary', '3D Model'];
+            const randomType = resourceTypes[Math.floor(Math.random() * resourceTypes.length)];
+            const resource = `${randomType}: ${topic}`;
+            const resourceElement = document.createElement('p');
+            resourceElement.textContent = resource;
+            generatedResources.appendChild(resourceElement);
+        }
+
+        function updateCurrentRole() {
+            currentRoleElement.textContent = currentRole;
+        }
+
+        function createRoleButtons() {
+            roleButtons.innerHTML = '';
+            roles.forEach(role => {
+                const button = document.createElement('button');
+                button.textContent = role;
+                button.className = 'bg-gray-600 text-white p-2 rounded hover:bg-gray-700 transition-colors m-1';
+                button.onclick = () => {
+                    currentRole = role;
+                    updateCurrentRole();
+                    updateRoleContent();
+                    addAIMessage(`AI: You've switched to the ${role} role. How can I assist you in this capacity?`);
+                };
+                roleButtons.appendChild(button);
+            });
+        }
+
+        // Sample conversations and outputs
+        const sampleConversations = [
+            {
+                role: 'Student',
+                conversation: [
+                    {user: "Can you explain the structure of a DNA molecule?"},
+                    {ai: "Certainly! I'll load up a 3D model of a DNA molecule for us to examine. DNA, or deoxyribonucleic acid, is a complex molecule that carries genetic instructions for the development, functioning, growth and reproduction of all known organisms."},
+                    {user: "What are the different parts of the DNA structure?"},
+                    {ai: "Great question! Let's look at the key components of DNA structure in our 3D model. The main parts are:\\n\\n1. Sugar-phosphate backbone\\n2. Nucleotide bases (Adenine, Thymine, Cytosine, Guanine)\\n3. Hydrogen bonds between base pairs\\n4. Major and minor grooves\\n\\nAs I highlight each part in the 3D model, I'll explain its function. Let's start with the sugar-phosphate backbone..."}
+                ]
+            },
+            {
+                role: 'Teacher',
+                conversation: [
+                    {user: "I need to create a lesson plan on the solar system for my 5th-grade class."},
+                    {ai: "Excellent! I'd be happy to help you create an engaging lesson plan on the solar system for your 5th graders. Let's start by outlining the key topics and then we'll design some interactive activities using our 3D model.\\n\\nKey topics for a 5th-grade solar system lesson:\\n1. The Sun and its importance\\n2. The eight planets and their order\\n3. Characteristics of inner and outer planets\\n4. Moons, asteroids, and comets\\n\\nNow, let's create an interactive activity. We can use our 3D model to:\\n1. Take a virtual tour of the planets\\n2. Compare sizes of planets\\n3. Explore planetary orbits\\n\\nWould you like me to generate a full lesson plan based on these ideas?"}
+                ]
+            },
+            {
+                role: 'Researcher',
+                conversation: [
+                    {user: "I'm studying the effects of microgravity on plant growth. Can you help me visualize this?"},
+                    {ai: "Absolutely! This is a fascinating area of research. I'll load a 3D model that simulates plant growth in both Earth's gravity and microgravity conditions. This visualization will help us compare the differences.\\n\\nKey points we'll explore in the 3D model:\\n1. Root growth patterns\\n2. Stem elongation\\n3. Leaf orientation\\n4. Overall plant structure\\n\\nAs we examine the model, we'll see that plants grown in microgravity often exhibit:\\n1. Irregular root growth patterns\\n2. Increased stem elongation\\n3. Random leaf orientation\\n4. Overall changes in plant structure and development\\n\\nLet's start by looking at the root systems. Notice how the roots in Earth's gravity grow downward, while in microgravity they..."}
+                ]
+            }
+        ];
+
+        function displaySampleConversation(roleIndex) {
+            const conversation = sampleConversations[roleIndex].conversation;
+            aiMessages.innerHTML = ''; // Clear previous messages
+            conversation.forEach(message => {
+                if (message.user) {
+                    addAIMessage('You: ' + message.user);
+                }
+                if (message.ai) {
+                    addAIMessage('AI: ' + message.ai);
+                }
+            });
+        }
+
+        // Typical activities for each role
+        const typicalActivities = {
+            Student: [
+                "Explore 3D models of complex concepts",
+                "Take interactive quizzes",
+                "Collaborate on virtual group projects",
+                "Attend virtual lectures",
+                "Conduct simulated experiments"
+            ],
+            Teacher: [
+                "Create immersive lesson plans",
+                "Design 3D educational content",
+                "Monitor student progress in real-time",
+                "Conduct virtual office hours",
+                "Develop adaptive assessment tools"
+            ],
+            Researcher: [
+                "Visualize complex datasets in 3D",
+                "Collaborate on virtual research projects",
+                "Simulate experimental scenarios",
+                "Analyze 3D models of research subjects",
+                "Present findings in immersive environments"
+            ]
+        };
+
+        function displayTypicalActivities() {
+            const activitiesList = document.createElement('ul');
+            activitiesList.className = 'list-disc list-inside';
+            typicalActivities[currentRole].forEach(activity => {
+                const li = document.createElement('li');
+                li.textContent = activity;
+                activitiesList.appendChild(li);
+            });
+            const activitiesContainer = document.createElement('div');
+            activitiesContainer.innerHTML = `<h3 class="text-lg font-bold mt-4 mb-2">Typical ${currentRole} Activities:</h3>`;
+            activitiesContainer.appendChild(activitiesList);
+            learningPathContent.appendChild(activitiesContainer);
+        }
+
+        // Update role-specific content
+        function updateRoleContent() {
+            updateCurrentRole();
+            learningPathContent.innerHTML = ''; // Clear previous content
+            displayTypicalActivities();
+            const roleIndex = roles.indexOf(currentRole);
+            if (roleIndex !== -1) {
+                displaySampleConversation(roleIndex);
+            }
+        }
+
+        // Function to simulate output generation
+        function simulateOutput(type) {
+            const outputs = {
+                'quiz': "Generated Quiz: Solar System Basics\\n1. What is the order of planets from the Sun?\\n2. Which planet is known as the Red Planet?\\n3. What is the largest planet in our solar system?",
+                'lesson': "Lesson Plan: Introduction to DNA\\nObjectives:\\n1. Understand the basic structure of DNA\\n2. Identify the four nucleotide bases\\n3. Explain the concept of base pairing",
+                'summary': "Research Summary: Effects of Microgravity on Plant Growth\\nKey Findings:\\n1. Altered root growth patterns\\n2. Increased stem elongation\\n3. Changes in gene expression related to cell wall formation"
+            };
+            const outputElement = document.createElement('pre');
+            outputElement.textContent = outputs[type];
+            outputElement.className = 'bg-gray-800 p-2 rounded mt-2 text-sm';
+            generatedResources.appendChild(outputElement);
+        }
+
+        // Buttons for simulating output generation
+        const outputTypes = ['quiz', 'lesson', 'summary'];
+        outputTypes.forEach(type => {
+            const button = document.createElement('button');
+            button.textContent = `Generate ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+            button.className = 'bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition-colors m-1 text-sm';
+            button.onclick = () => simulateOutput(type);
+            generatedResources.appendChild(button);
+        });
+
+        // Voice input
+        document.getElementById('voice-input').addEventListener('click', () => {
+            if ('webkitSpeechRecognition' in window) {
+                const recognition = new webkitSpeechRecognition();
+                recognition.onresult = function(event) {
+                    const transcript = event.results[0][0].transcript;
+                    aiInput.value = transcript;
+                    aiInput.dispatchEvent(new KeyboardEvent('keypress', {'key': 'Enter'}));
+                };
+                recognition.start();
+            } else {
+                alert('Speech recognition is not supported in your browser.');
+            }
+        });
+
+        // File upload for custom 3D models
+        document.getElementById('file-upload').addEventListener('click', () => {
+            document.getElementById('file-input').click();
+        });
+
+        document.getElementById('file-input').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const contents = e.target.result;
+                    loadEnvironment(contents);
+                };
+                reader.readAsArrayBuffer(file);
+            }
+        });
+
+        // Environment change
+        document.getElementById('change-environment').addEventListener('click', () => {
+            const environments = ['solar_system.glb', 'dna_model.glb', 'atom_structure.glb'];
+            const randomEnvironment = environments[Math.floor(Math.random() * environments.length)];
+            loadEnvironment('path/to/' + randomEnvironment);
+            addAIMessage('AI: I\'ve changed the environment to explore a new topic. What would you like to know about this?');
+        });
+
+        // Collaboration feature (simulated)
+        document.getElementById('collaborate').addEventListener('click', () => {
+            addAIMessage('AI: Collaboration mode activated. In a full implementation, this would allow multiple users to interact in the same 3D space.');
+        });
+
+        // Side panel toggle
+        document.querySelectorAll('.panel-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                tab.parentElement.classList.toggle('active');
+            });
+        });
+
+        // Window resize handler
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Initial setup
+        updateCurrentRole();
+        createRoleButtons();
+        updateRoleContent();
+        addAIMessage('AI: Welcome to your personalized immersive learning environment. What would you like to explore today?');
+        updateLearningPath('Introduction to Immersive Learning');
+    </script>
+</body>
+</html>
